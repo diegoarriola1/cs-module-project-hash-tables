@@ -1,3 +1,6 @@
+from lecture import Node, LinkedList
+
+
 class HashTableEntry:
     """
     Linked List hash table key/value pair
@@ -21,9 +24,9 @@ class HashTable:
     """
 
     def __init__(self, capacity=MIN_CAPACITY):
+        self.storage = [LinkedList()] * MIN_CAPACITY
+        self.count = 0
         self.capacity = capacity
-        self.storage = [None for i in range(self.capacity)]
-        self.nodeCount = 0
 
     def get_num_slots(self):
         """
@@ -40,8 +43,8 @@ class HashTable:
         Return the load factor for this hash table.
         Implement this.
         """
-        # load factof = number of items in table / total slots
-        return self.nodeCount / self.capacity
+        # load factor = number of items in table / total slots
+        return self.count / self.capacity
 
     def fnv1(self, string, seed=0):
         """
@@ -84,7 +87,18 @@ class HashTable:
         Hash collisions should be handled with Linked List Chaining.
         Implement this.
         """
-        self.storage[self.hash_index(key)] = HashTableEntry(key, value)
+        # self.storage[self.hash_index(key)] = HashTableEntry(key, value)
+
+        slot = self.hash_index(key)
+        current = self.storage[slot].head
+        while current:
+            if current.key == key:
+                current.value = value
+            current = current.next
+
+        entry = HashTableEntry(key, value)
+        self.storage[slot].insert_at_head(entry)
+        self.count += 1
 
     def delete(self, key):
         """
@@ -92,12 +106,14 @@ class HashTable:
         Print a warning if the key is not found.
         Implement this.
         """
-        key_idx = self.hash_index(key)
+        # key_idx = self.hash_index(key)
 
-        if self.storage[key_idx] is not None:
-            self.storage[key_idx] = None
-        else:
-            return None
+        # if self.storage[key_idx] is not None:
+        #     self.storage[key_idx] = None
+        # else:
+        #     return None
+        self.put(key, None)
+        self.count -= 1
 
     def get(self, key):
         """
@@ -105,11 +121,18 @@ class HashTable:
         Returns None if the key is not found.
         Implement this.
         """
-        key_idx = self.hash_index(key)
-        if self.storage[key_idx] is not None:
-            return self.storage[key_idx].value
-        else:
-            return None
+        # key_idx = self.hash_index(key)
+        # if self.storage[key_idx] is not None:
+        #     return self.storage[key_idx].value
+        # else:
+        #     return None
+        slot = self.hash_index(key)
+        current = self.storage[slot].head
+        while current:
+            if current.key == key:
+                return current.value
+            current = current.next
+        return None
 
     def resize(self, new_capacity):
         """
@@ -117,7 +140,15 @@ class HashTable:
         rehashes all key/value pairs.
         Implement this.
         """
-        self.capacity = new_capacity
+        if self.get_load_factor() > 0.7:
+            old_storage = self.storage
+            self.storage = [LinkedList()] * new_capacity
+            for item in old_storage:
+                current = item.head
+                while current:
+                    self.put(current.key, current.value)
+                    current = current.next
+            self.capacity = new_capacity
 
 
 if __name__ == "__main__":
