@@ -1,4 +1,4 @@
-from lecture import Node, LinkedList
+# from lecture import Node, LinkedList
 
 
 class HashTableEntry:
